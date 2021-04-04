@@ -205,5 +205,5 @@ summary {
 }
 #file_contents_visual_editor p { margin-top: 0px; }
 #file_contents_html_editor { 
-    padding: 10px; font-family: Monaco, 'Andale Mono', 'Courier New', monspace;
+    padding: 10px; font-family: Monaco, 'Andale Mono', 'Courier New', monospace;
 }
