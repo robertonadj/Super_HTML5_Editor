@@ -61,15 +61,79 @@
         htmlView = document.getElementById('file_contents_html'),
         htmlEditor = document.getElementById('file_contents_html_editor');
 
+        // permite a edição do iframe do editor visual ativando sua propriedade design mode.
         visualEditorDoc.designMode = 'on';
 
+        // marca o arquivo como alterado sempre que o usuário fizer alterações em um dos editores.
         visualEditorDoc.addEventListener('keyup', markDirty, false);
         htmlEditor.addEventListener('keyup', markDirty, false);
 
+        // esta função atualiza o conteúdo do editor visual.
         var updateVisualEditor = function(content) {
             visualEditorDoc.open();
             visualEditorDoc.write(content);
+            visualEditorDoc.close();
+            visualEditorDoc.addEventListener('keyup', markDirty, false);
+        };
+
+        // esta função atualiza o conteúdo do editor de html.
+        var updateHtmlEditor = function(content) {
+            htmlEditor.value = content;
+        };
+
+        // este manipulador de eventos se alterna entre os editores visual e de html.
+        var toggleActiveView = function() {
+            if(htmlView.style.display == 'block') {
+                editVisualButton.className = 'split_left active';
+                visualView.style.display = 'block';
+                editHtmlButton.className = 'split_right';
+                htmlView.style.display = 'none';
+                updateVisualEditor(htmlEditor.value);
+            } else {
+                editHtmlButton.className = 'split_right active';
+                htmlView.style.display = 'block';
+                editVisualButton.className = 'split_left';
+                visualView.style.display = 'none';
+
+                var x = new XMLSerializer();
+                var content = x.serializeToString(visualEditorDoc);
+                updateHtmlEditor(content);
+            }
         }
+
+        editVisualButton.addEventListener('click', toggleActiveView, false);
+        editHtmlButton.addEventListener('click', toggleActiveView, false);
+
+        var visualEditorToolbar = document.getElementById('file_contents_visual_toolbar');
+
+        // richtextaction é o manipulador de eventos de todos os botões da barra de ferramentas do editor visual.
+        var richTextAction = function(e) {
+            var command,
+            node = (e.target.nodeName  === "BUTTON") ? e.target :
+            e.target.parentNode;
+
+            // o objeto dataset oferece acesso conveniente aos atributos data do html5.
+            if(node.dataset) {
+                command = node.dataset.command;
+            } else {
+                command = node.getAttribute('data-command');
+            }
+
+            var doPopupCommand = function(command, promptText, promptDefault) {
+                // já que esse aplicativo requer uma ui personalizada, showui será configurado como false.
+                visualEditorDoc.execCommand(command, false, prompt(promptText, promptDefault));
+            }
+
+            if(command === 'createLink') {
+                doPopupCommand(command, 'Enter link URL:', 'http://www.example.com');
+            } else if(command === 'insertImage') {
+                doPopupCommand(command, 'Enter image URL:', 'http://www.example.com/image.png');
+            } else {
+                visualEditorDoc.execCommand(command);
+            }
+        };
+
+        visualEditorToolbar.addEventListener('click', richTextAction, false);
     };
 
     var init = function() {
