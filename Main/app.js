@@ -128,6 +128,21 @@
                 doPopupCommand(command, 'Enter link URL:', 'http://www.example.com');
             } else if(command === 'insertImage') {
                 doPopupCommand(command, 'Enter image URL:', 'http://www.example.com/image.png');
+            } else if (command === 'insertMap') {
+                // verifica se o navegador do usuário dá suporte à geolocalização.
+                if(navigator.geolocation) {
+                    node.innerHTML = 'Loading';
+                    // o método getCurrentPosition fará o navegador solicitar ao usuário acesso à sua localização.
+                    navigator.geolocation.getCurrentPosition(function(pos) {
+                        var coords = pos.coords.latitude+','+pos.coords.longitude;
+                        var img = 'http://maps.googleapis.com/maps/api/staticmap?markers='+coords+'&zoom=11&size=200x200&sensor=false';
+                        // usa execCommand para gerar uma imagem estática do Google Maps com a localização do usuário.
+                        visualEditorDoc.execCommand('insertImage', false, img);
+                        node.innerHTML = 'Location Map';
+                    });
+                } else {
+                    alert('Geolocation not available', 'No geolocation data');
+                }
             } else {
                 visualEditorDoc.execCommand(command);
             }
