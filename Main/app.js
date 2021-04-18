@@ -149,6 +149,72 @@
         };
 
         visualEditorToolbar.addEventListener('click', richTextAction, false);
+
+        window.requestFileSystem = window.requestFileSystem || 
+        window.webkitRequestFileSystem
+        || window.mozRequestFileSystem || window.msRequestFileSystem  || false;
+        window.storageInfo = navigator.persistentStorage ||
+        navigator.webkitPersistentStorage || navigator.mozPersistentStorage ||
+        // por conveniência, indique possíveis prefixos de fornecedor dos objetos de sistema de arquivos.
+        navigator.msPersistentStorage || false;
+        
+        // define as variáveis básicas a serem usadas no aplicativo.
+        var stType = window.PERSISTENT || 1,
+        stSize = (5*1024*1024),
+        fileSystem,
+        fileListEl = document.getElementById('files'),
+        currentFile;
+
+        // função de erro padrão para todas as chamadas de método da API File System.
+        var fsError = function(e) {
+            if(e.code === 9) {
+                alert('File name already exists.', 'File System Error');
+            } else {
+                alert('An unexpected error ocurred. Error code: '+e.code);
+            }
+        };
+
+        // função de erro padrão para todas as chamadas de método da API Quota Management.
+        var qmError = function(e) {
+            if(e.code === 22) {
+                alert('Quota exceeded.', 'Quota Management Error');
+            } else {
+                alert('An unexpected error ocurred. Error code: '+e.code);
+            }
+        };
+
+        // verifica se o navegador dá suporte a API File System e a API Quota Management.
+        if(requestFileSystem && storageInfo) {
+            var checkQuota = function(currentUsage, quota) {
+                if(quota === 0) {
+                    // já que esse aplicativo tem um sistema de arquivos persistente, a solicitação de cota acionará
+                    // uma mensagem pedindo permissão do usuário para acessar o sistema de arquivos do navegador.
+                    storageInfo.requestQuota(stType, stSize, getFS, qmError);
+                } else {
+                    getFS(quota);
+                }
+            };
+
+            // se queryUsageAndQuota for executado com sucesso, ele passará informações de uso e de cota para a função de callback.
+            storageInfo.queryUsageAndQuota(stType, checkQuota, qmError);
+
+            var getFS = function(quota) {
+                // o método requestFileSystem é usado na obtenção do objeto de sistema de arquivos.
+                requestFileSystem(stType, quota, displayFileSystem, fsError);
+            }
+
+            var displayFileSystem = function(fs) {
+                fileSystem = fs;
+                // estas funções recuperarão e exibirão arquivos do sistema de arquivos do aplicativo.
+                updateBrowserFilesList();
+                if(view === 'editor') {
+                    // se o modo de exibição de editor for o modo atual, carregue o arquivo no editor.
+                    loadFile(fileName);
+                }
+            }
+        } else {
+            alert('File System API not supported', 'Unsupported');
+        }
     };
 
     var init = function() {
