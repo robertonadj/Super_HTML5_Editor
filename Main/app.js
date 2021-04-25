@@ -215,6 +215,43 @@
         } else {
             alert('File System API not supported', 'Unsupported');
         }
+
+        var displayBrowserFileList = function(files) {
+            fileListEl.innerHTML = '';
+            // atualiza o contador com o número de arquivos do sistema de arquivos.
+            document.getElementById('file_count').innerHTML = files.length;
+            if(files.length > 0) {
+                // itera por cada arquivo do sistema usando a função de array forEach.
+                files.forEach(function(file, i) {
+                    // draggable é sobre a interatividade de arrastar e soltar.
+                    var li = '<li id="li_'+i+'" draggable="true">'+file.name
+                    + '<div><button id="view_'+i+'">View</button>'
+                    + '<button class="green" id="edit_'+i+'">Edit</button>'
+                    + '<button class="red" id="del_'+i+'">Delete</button>'
+                    + '</div></li>';
+                    fileListEl.insertAdjacentHTML('beforeend', li);
+
+                    var listItem = document.getElementById('li_'+i),
+                    viewBtn = document.getElementById('view_'+i),
+                    editBtn = document.getElementById('edit_'+i),
+                    deleteBtn = document.getElementById('del_'+i);
+
+                    var doDrag = function(e) { dragFile(file, e); }
+                    var doView = function() { viewFile(file); }
+                    var doEdit = function() { editFile(file); }
+                    var doDelete = function() { deleteFile(file); }
+
+                    // anexa manipuladores de eventos aos botões view, edit e delete e ao próprio item da lista.
+                    viewBtn.addEventListener('click', doView, false);
+                    editBtn.addEventListener('click', doEdit, false);
+                    deleteBtn.addEventListener('click', doDelete, false);
+                    // implementação do doDrag para dar suporte às funções de arrastar e soltar.
+                    listItem.addEventListener('dragstart', doDrag, false);
+                });
+            } else { // se não houver arquivos, exiba uma mensagem de lista vazia.
+                fileListEl.innerHTML = '<li class="empty">No files to display</li>'
+            }
+        };
     };
 
     var init = function() {
