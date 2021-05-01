@@ -252,6 +252,34 @@
                 fileListEl.innerHTML = '<li class="empty">No files to display</li>'
             }
         };
+
+        var updateBrowserFilesList = function() {
+            // cria um leitor de diretório
+            var dirReader = fileSystem.root.createReader(),
+            files = [];
+            // estamos lendo um conjunto de arquivos de cada vez na listagem do diretório, logo, usaremos uma função recursiva 
+            // para se manter lendo até todos os arquivos serem recuperados.
+            var readFileList = function() {
+                dirReader.readEntries(function(fileSet) {
+                    if(!fileSet.length) {
+                        // quando o fim do diretório for alcançado, chama a função displayBrowserFileList, passando como argumento o array 
+                        // de arquivos classificado alfabeticamente.
+                        displayBrowserFileList(files.sort());
+                    } else {
+                        for(var i=0,len=fileSet.length; i<len; i++) {
+                            // se não tiver chegado ao fim do diretório, insere os arquivos que acabaram de ser lidos no array
+                            // e chama recursivamente a função readFileList novamente.
+                            files.push(fileSet[i]);
+                        }
+
+                        readFileList();
+                    }
+                }, fsError);
+            }
+
+            readFileList();
+        }; 
+
     };
 
     var init = function() {
