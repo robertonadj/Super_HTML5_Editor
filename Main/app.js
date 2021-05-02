@@ -278,7 +278,53 @@
             }
 
             readFileList();
-        }; 
+        };
+        
+        var loadFile = function(name) {
+            // o método getFile recebe 4 argumentos: 1: o caminho relativo ou absoluto para o nome do arquivo;
+            // 2: um objeto de opções; 3: uma função de callback para o caso de sucesso
+            // 4: uma função de callback para o caso de erro.
+            fileSystem.root.getFile(name, {}, function(fileEntry) {
+                currentFile = fileEntry;
+                // o método file da API File System é usado para recuperar o arquivo em fileEntry e passá-lo para a função de callback.
+                fileEntry.file(function(file) {
+                    var reader = new FileReader();
+                    // um objeto FileReader de nome reader é usado para ler o conteúdo do arquivo.
+                    reader.onloadend = function(e) {
+                        updateVisualEditor(this.result);
+                        updateHtmlEditor(this.result);
+                    }
+                    // com um novo FileReader criado e seu evento onloadend definido, chama readAsText para ler o 
+                    // arquivo e carregá-lo no atributo result de reader. 
+                    reader.readAsText(file);
+                }, fsError);
+            }, fsError);
+        };
+
+        var viewFile = function(file) {
+            // o método toURL torna fácil visualizar o conteúdo de um arquivo porque vocô pode abrí-lo em
+            // uma nova janela do navegador
+            window.open(file.toURL(), 'SuperEditorPreview', 'width=800,height=600');
+        };
+
+        // para editar o arquivo, carregue-o nos editores visual e de HTML e ative o modo File Editor alterando o hash do URL.
+        var editFile = function(file) {
+            loadFile(file.name);
+            location.href = '#editor/'+file.name;
+        };
+
+        var deleteFile = function(file) {
+            var deleteSuccess = function() {
+                alert('File '+file.name+' deleted successfuly', 'File deleted');
+                updateBrowserFilesList();
+            }
+
+            if(confirm('File will be deleted. Are you sure?', 'Confirm delete')) {
+                // quando a função remove terminar, ela executará a função de callback deleteSuccess, que chama a função
+                // updateBrowserFilesList para assegurar que a listagem seja atualizada.
+                file.remove(deleteSuccess, fsError);
+            }
+        };
 
     };
 
