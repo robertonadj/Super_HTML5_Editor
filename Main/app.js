@@ -326,6 +326,42 @@
             }
         };
 
+        var createFile = function(field) {
+            // o objeto config é passado para o método getFile, solicitando que ele crie um FileEntry,
+            // mas só se não existir um FileEntry com esse nome.
+            var config = {
+                create: true,
+                exclusive: true
+            };
+
+            // quando o método getFile retona com sucesso, ele exibe uma mensagem de confirmação,
+            // recarrega e exibe os arquivos e limpa o campo do formulário.
+            var createSuccess = function(file) {
+                alert('File '+file.name+' created successfully', 'File created');
+                updateBrowserFilesList();
+                field.value = '';
+            };
+            fileSystem.root.getFile(field.value, config, createSuccess, fsError);
+        };
+
+        var createFormSubmit = function(e) {
+            e.preventDefault();
+            var name = document.forms.create.name;
+            if(name.value.length > 0) {
+                var len = name.value.length;
+                if(name.value.substring(len-5, len) === '.html') {
+                    // este é o manipulador de eventos do botão create do modo File Browser.
+                    // quando o formulário de criação é enviado, ele executa a validação,
+                    // e se for bem sucedida, chama a função createFile.
+                    createFile(name);
+                } else {
+                    alert('Only extension .html allowed', 'Create Error');
+                }
+            } else {
+                alert('You must enter a file name', 'Create Error');
+            }
+        };
+
     };
 
     var init = function() {
