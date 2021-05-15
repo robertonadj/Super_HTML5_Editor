@@ -362,6 +362,56 @@
             }
         };
 
+        document.forms.create.addEventListener('submit', createFormSubmit, false);
+
+        var importFiles = function(files) {
+            var count = 0, validCount = 0;
+            var checkCount = function() {
+                count++;
+                if(count === files.length) {
+                    var errorCount = count - validCount;
+                    alert(validCount+' file(s) imported, '+errorCount+'error(s) encountered.', 'Import complete');
+                    updateBrowserFilesList();
+                }
+            };
+
+            for(var i = 0, len = files.length; i < len; i++) {
+                var file = files[i];
+                (function(f) {
+                    var config = {create: true, exclusive: true};
+                    if(f.type == 'text/html') {
+                        fileSystem.root.getFile(f.name, config,
+                            function(theFileEntry) {
+                                theFileEntry.createWriter(function(fw) {
+                                    fw.write(f);
+                                    validCount++;
+                                    checkCount();
+                                }, function(e) {
+                                    checkCount();
+                                });
+                            }, function(e) {
+                                checkCount();
+                            });
+                    } else {
+                        checkCount();
+                    }    
+                                
+                            })(file);
+                    }
+                };
+
+                var importFormSubmit = function(e) {
+                    e.preventDefault();
+                    var files = document.forms.import.files.files;
+                    if(files.length > 0) {
+                        importFiles(files);
+                    } else {
+                        alert('No file(s) selected', 'Import Error');
+                    }
+                };
+
+                document.forms.import.addEventListener('submit', importFormSubmit, false);
+            
     };
 
     var init = function() {
