@@ -411,6 +411,51 @@
                 };
 
                 document.forms.import.addEventListener('submit', importFormSubmit, false);
+
+                var saveFile = function(callback) {
+                    var currentView = function() {
+                        if(htmlView.style.display === 'block') {
+                            return 'html';
+                        } else {
+                            return 'editor';
+                        }
+                    }
+
+                    var content;
+
+                    if(currentView() === 'editor') {
+                        var x = new XMLSerializer();
+                        content = x.serializeToString(visualEditorDoc);
+                    } else {
+                        content = htmlEditor.value;
+                    }
+
+                    currentFile.createWriter(function(fw) {
+                        fw.onwriteend = function(e) {
+                            fw.onwriteend = function(e) {
+                                if(typeof callback === 'function') {
+                                    callback(currentFile);
+                                } else {
+                                    alert('File saved successfully', 'File saved');
+                                }
+
+                                isDirty = false;
+                            };
+
+                            var blob = new Blob([content],
+                                {text: 'text/html', endings:'native'});
+
+                                fw.write(blob);
+                        };
+
+                        fw.onerror = fsError;
+                        fw.truncate(0);
+                    }, fsError);
+                };
+
+                var previewFile = function() {
+                    saveFile(viewFile);
+                };
             
     };
 
